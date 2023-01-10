@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, People, Planet, Fav_People, Fav_Planets
 #from models import Person
 
 app = Flask(__name__)
@@ -38,47 +38,49 @@ def sitemap():
 
 @app.route('/user', methods=['GET'])
 def handle_hello():
-
     all_users = User.query.all()
-    """
-    new_users = []
-    for i in range(len(all_users)):
-        print(all_users[i])
-        new_users.append(all_users[i].serialize())
-    """
     all_users = list(map(lambda user: user.serialize() ,all_users))
-
     return jsonify(all_users), 200
 
 @app.route("/people", methods=["GET"])
 def get_all_people():
+    all_people = People.query.all()
+    all_people = list(map(lambda people: people.serialize() ,all_people))
+    return jsonify(all_people), 200
+   
+@app.route("/people/<people_id>", methods=["GET"])
+def get_one_people(people_id):
+    onepeople = People.query.get(people_id)
+    return jsonify(onepeople.serialize())
 
+@app.route("/planet/", methods=["GET"])
+def get_all_planet():
+    all_planet = Planet.query.all()
+    all_planet = list(map(lambda planet: planet.serialize() ,all_planet))
+    return jsonify(all_planet), 200
     return jsonify({
-        "mensaje": "aca estaran todos los personajes"
+        "mensaje": "aca estaran todos los planetas"
     })
-
-@app.route("/people/<int:id>", methods=["GET"])
-def get_one_people(id):
-
-    return jsonify({
-        "mensaje": "aca estara la info del personaje con id "+str(id)
-    })
-
-@app.route("/favorite/planet/<int:planet_id>", methods=['POST'])
-def post_fav_planet(planet_id):
     
-    return jsonify({
-        "mensaje": "el planeta con id "+ str(planet_id) + " ha sido agregado"
-    })
-
-@app.route("/favorite/planet/<int:planet_id>", methods=['DELETE'])
-def delete_fav_planet(planet_id):
-    
-    return jsonify({
-        "mensaje": "el planeta con id "+ str(planet_id) + " ha sido eliminado"
-    })
+@app.route("/planet/<planet_id>", methods=["GET"])
+def get_one_planet(planet_id):
+    oneplanet = Planet.query.get(planet_id)
+    return jsonify(oneplanet.serialize()) 
 
 
+@app.route("/planet/favorite/<planet_id>", methods=['POST'])
+def add_fav_planet(planet_id):
+    one = Planet.query.get(planet_id)
+    user = User.query.get(1)
+    if(one):
+        new_fav = Fav_Planets()
+        new_fav.email = user.email
+        new_fav.planet_id = planet_id
+        db.session.add (new_fav)
+        db.session.commit()
+        return "nuevo personaje favorito agregado"
+    else:
+        raise APIException("No existe personaje", status_code=404)
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
