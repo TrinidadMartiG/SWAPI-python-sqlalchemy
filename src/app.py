@@ -53,6 +53,8 @@ def get_one_people(people_id):
     onepeople = People.query.get(people_id)
     return jsonify(onepeople.serialize())
 
+
+
 @app.route("/planet/", methods=["GET"])
 def get_all_planet():
     all_planet = Planet.query.all()
@@ -68,7 +70,7 @@ def get_one_planet(planet_id):
     return jsonify(oneplanet.serialize()) 
 
 
-@app.route("/planet/favorite/<planet_id>", methods=['POST'])
+@app.route("/planet/favorite/<int:planet_id>", methods=['POST'])
 def add_fav_planet(planet_id):
     one = Planet.query.get(planet_id)
     user = User.query.get(1)
@@ -78,9 +80,45 @@ def add_fav_planet(planet_id):
         new_fav.planet_id = planet_id
         db.session.add (new_fav)
         db.session.commit()
+        return "nuevo planeta favorito agregado"
+    else:
+        raise APIException("No existe planeta", status_code=404)
+
+@app.route("/planet/favorite/delete/<int:planet_id>", methods=['DELETE'])
+def delete_fav_planet(planet_id):
+    one = Fav_Planets.query.filter_by(planet_id =planet_id).first()
+    user = User.query.get(1)
+    if(one):
+        db.session.delete (one)
+        db.session.commit()
+        return "Eliminado"
+    else:
+        raise APIException("No existe planeta", status_code=404)
+
+@app.route("/people/favorite/<int:people_id>", methods=['POST'])
+def add_fav_people(people_id):
+    one = People.query.get(people_id)
+    user = User.query.get(1)
+    if(one):
+        new_fav = Fav_People()
+        new_fav.email = user.email
+        new_fav.people_id = people_id
+        db.session.add (new_fav)
+        db.session.commit()
         return "nuevo personaje favorito agregado"
     else:
         raise APIException("No existe personaje", status_code=404)
+
+@app.route("/people/favorite/delete/<int:people_id>", methods=['DELETE'])
+def delete_fav_people(people_id):
+    one = Fav_People.query.filter_by(people_id =people_id).first()
+    user = User.query.get(1)
+    if(one):
+        db.session.delete (one)
+        db.session.commit()
+        return "Eliminado"
+    else:
+        raise APIException("No existe people seleccionado", status_code=404)
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
